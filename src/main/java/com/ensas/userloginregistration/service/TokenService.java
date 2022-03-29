@@ -1,5 +1,7 @@
-package com.ensas.userloginregistration.web.token;
+package com.ensas.userloginregistration.service;
 
+import com.ensas.userloginregistration.entity.Token;
+import com.ensas.userloginregistration.repository.TokenRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -8,19 +10,19 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class ConfirmationTokenService {
+public class TokenService {
 
-    private final ConfirmationTokenRepository confirmationTokenRepository;
+    private final TokenRepository confirmationTokenRepository;
 
-    public void saveConfirmationToken(ConfirmationToken token){
+    public void saveConfirmationToken(Token token){
         confirmationTokenRepository.save(token);
     }
 
-    public Optional<ConfirmationToken> getToken(String token){
+    public Optional<Token> getToken(String token){
             return confirmationTokenRepository.findByToken(token);
     }
     public void setConfirmedAt(String token){
-        ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token)
+        Token confirmationToken = confirmationTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalStateException("User not found"));
         confirmationToken.setConfirmedAt(LocalDateTime.now());
     }

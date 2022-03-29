@@ -1,9 +1,8 @@
 package com.ensas.userloginregistration.security.config;
 
-import com.ensas.userloginregistration.appuser.AppUserService;
-import com.ensas.userloginregistration.security.PasswordEncoder;
+import com.ensas.userloginregistration.service.UserService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -15,18 +14,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private AppUserService appUserService;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserService appUserService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/v*/registration/**").permitAll()
+                .antMatchers("/api/v*/authenticate/**").permitAll()
                 .anyRequest().authenticated().and()
                 .formLogin();
     }

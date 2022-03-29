@@ -1,8 +1,6 @@
-package com.ensas.userloginregistration.appuser;
+package com.ensas.userloginregistration.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,28 +8,21 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
-@Data @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor @AllArgsConstructor
 @Entity
-public class AppUser implements UserDetails {
+@Table(name = "USER_TABLE")
+public class User implements UserDetails {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String userName;
     private String password;
     private String email;
     @Enumerated(EnumType.STRING)
-    private AppUserRole appUserRole;
+    private UserRole appUserRole;
     private Boolean locked = false;
     private Boolean enabled = false;
-
-    public AppUser(String userName,
-                   String password,
-                   String email,
-                   AppUserRole appUserRole) {
-        this.userName = userName;
-        this.password = password;
-        this.email = email;
-        this.appUserRole = appUserRole;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -69,3 +60,4 @@ public class AppUser implements UserDetails {
         return enabled;
     }
 }
+

@@ -1,4 +1,4 @@
-package com.ensas.userloginregistration.email;
+package com.ensas.userloginregistration.service;
 
 public interface EmailSender {
 

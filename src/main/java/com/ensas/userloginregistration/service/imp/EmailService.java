@@ -1,8 +1,8 @@
-package com.ensas.userloginregistration.email;
+package com.ensas.userloginregistration.service.imp;
 
+import com.ensas.userloginregistration.service.EmailSender;
 import lombok.AllArgsConstructor;
-import org.hibernate.annotations.common.util.impl.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -10,11 +10,10 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.logging.Logger;
 
 @Service
-@AllArgsConstructor
-public class EmailService implements EmailSender{
+@RequiredArgsConstructor
+public class EmailService implements EmailSender {
 
     private final JavaMailSender javaMailSender;
 

@@ -1,12 +1,10 @@
-package com.ensas.userloginregistration.web;
+package com.ensas.userloginregistration.service;
 
-import com.ensas.userloginregistration.appuser.AppUser;
-import com.ensas.userloginregistration.appuser.AppUserRole;
-import com.ensas.userloginregistration.appuser.AppUserService;
-import com.ensas.userloginregistration.email.EmailSender;
-import com.ensas.userloginregistration.email.EmailService;
-import com.ensas.userloginregistration.web.token.ConfirmationToken;
-import com.ensas.userloginregistration.web.token.ConfirmationTokenService;
+import com.ensas.userloginregistration.dto.AuthenticationRequestDto;
+import com.ensas.userloginregistration.entity.User;
+import com.ensas.userloginregistration.entity.UserRole;
+import com.ensas.userloginregistration.util.EmailValidator;
+import com.ensas.userloginregistration.entity.Token;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,17 +16,17 @@ import java.time.LocalDateTime;
 public class RegistrationService {
 
     private final EmailValidator emailValidator;
-    private final AppUserService appUserService;
-    private final ConfirmationTokenService confirmationTokenService;
+    private final UserService appUserService;
+    private final TokenService confirmationTokenService;
     private final EmailSender emailSender;
 
-    public String register(RegistrationRequest request){
+    public String register(AuthenticationRequestDto request){
         boolean isValid = emailValidator.test(request.getEmail());
         if (!isValid){
             throw new IllegalStateException("The email is invalid");
         }
         String token = appUserService.signup(
-                new AppUser(request.getUserName(), request.getPassword(), request.getEmail(), AppUserRole.USER)
+                new User(request.getUserName(), request.getPassword(), request.getEmail(), UserRole.USER)
         );
         String link = "http://localhost:8080/api/v1/registration/confirm?token=" + token;
         emailSender.sendEmail(request.getEmail(),buildEmail(request.getUserName(),link));
@@ -36,7 +34,7 @@ public class RegistrationService {
     }
     @Transactional
     public String confirmToken(String token){
-        ConfirmationToken confirmationToken =confirmationTokenService
+        Token confirmationToken =confirmationTokenService
                 .getToken(token)
                 .orElseThrow(()->new IllegalStateException("Token not found"));
         if (confirmationToken.getConfirmedAt() != null){

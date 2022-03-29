@@ -1,4 +1,4 @@
-package com.ensas.userloginregistration.web;
+package com.ensas.userloginregistration.util;
 
 import org.springframework.stereotype.Service;
 
@@ -9,7 +9,7 @@ public class EmailValidator implements Predicate<String> {
 
     @Override
     public boolean test(String s) {
-        // Logique to validate the email
+        // TODO : add logique to validate email
         return true;
     }
 }

@@ -1,8 +1,10 @@
-package com.ensas.userloginregistration.appuser;
+package com.ensas.userloginregistration.service;
 
-import com.ensas.userloginregistration.web.token.ConfirmationToken;
-import com.ensas.userloginregistration.web.token.ConfirmationTokenService;
+import com.ensas.userloginregistration.entity.User;
+import com.ensas.userloginregistration.repository.UserRepository;
+import com.ensas.userloginregistration.entity.Token;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,12 +15,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
-public class AppUserService implements UserDetailsService {
+@RequiredArgsConstructor
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final ConfirmationTokenService confirmationTokenService;
+    private final TokenService confirmationTokenService;
 
     @Override
     public UserDetails loadUserByUsername(String email)
@@ -27,7 +29,7 @@ public class AppUserService implements UserDetailsService {
                 .orElseThrow(()->new UsernameNotFoundException(String.format("User with email %s not found",email)));
     }
 
-    public String signup(AppUser user){
+    public String signup(User user){
         boolean present = userRepository.findByEmail(user.getEmail()).isPresent();
         if (present){
             throw new IllegalStateException("The email already exists");
@@ -38,14 +40,14 @@ public class AppUserService implements UserDetailsService {
 
         String token = UUID.randomUUID().toString();
 
-        ConfirmationToken confirmationToken = new ConfirmationToken(
+        Token confirmationToken = new Token(
           token, LocalDateTime.now(),LocalDateTime.now().plusMinutes(15),user
         );
         confirmationTokenService.saveConfirmationToken(confirmationToken);
         return token;
     }
     public void enableAppUser(String email){
-        AppUser appUser = userRepository.findByEmail(email).orElseThrow(
+        User appUser = userRepository.findByEmail(email).orElseThrow(
                 () -> new IllegalStateException("User email not found")
         );
         appUser.setEnabled(true);
