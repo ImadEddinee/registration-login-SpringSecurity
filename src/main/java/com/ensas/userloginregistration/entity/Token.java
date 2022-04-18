@@ -29,6 +29,6 @@ public class Token {
             name = "user_id",
             referencedColumnName = "id"
     )
-    private User appUser;
+    private User user;
 
 }

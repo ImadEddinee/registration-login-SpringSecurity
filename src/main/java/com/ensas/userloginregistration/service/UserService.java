@@ -1,6 +1,7 @@
 package com.ensas.userloginregistration.service;
 
 import com.ensas.userloginregistration.entity.User;
+import com.ensas.userloginregistration.exceptions.ApiRequestException;
 import com.ensas.userloginregistration.repository.UserRepository;
 import com.ensas.userloginregistration.entity.Token;
 import lombok.AllArgsConstructor;
@@ -30,25 +31,24 @@ public class UserService implements UserDetailsService {
     }
 
     public String signup(User user){
-        boolean present = userRepository.findByEmail(user.getEmail()).isPresent();
-        if (present){
-            throw new IllegalStateException("The email already exists");
-        }
+
         String encoded = bCryptPasswordEncoder.encode(user.getPassword());
         user.setPassword(encoded);
         userRepository.save(user);
 
         String token = UUID.randomUUID().toString();
 
-        Token confirmationToken = new Token(
-          token, LocalDateTime.now(),LocalDateTime.now().plusMinutes(15),user
-        );
+        Token confirmationToken = new Token();
+        confirmationToken.setToken(token);
+        confirmationToken.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+        confirmationToken.setUser(user);
+
         confirmationTokenService.saveConfirmationToken(confirmationToken);
         return token;
     }
     public void enableAppUser(String email){
         User appUser = userRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalStateException("User email not found")
+                () -> new ApiRequestException("User email not found")
         );
         appUser.setEnabled(true);
         userRepository.save(appUser);

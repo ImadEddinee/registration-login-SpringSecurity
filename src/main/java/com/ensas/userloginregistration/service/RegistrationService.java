@@ -1,10 +1,12 @@
 package com.ensas.userloginregistration.service;
 
-import com.ensas.userloginregistration.dto.AuthenticationRequestDto;
+import com.ensas.userloginregistration.dto.UserDto;
 import com.ensas.userloginregistration.entity.User;
 import com.ensas.userloginregistration.entity.UserRole;
-import com.ensas.userloginregistration.util.EmailValidator;
 import com.ensas.userloginregistration.entity.Token;
+import com.ensas.userloginregistration.exceptions.ApiRequestException;
+import com.ensas.userloginregistration.mapper.UserMapper;
+import com.ensas.userloginregistration.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,38 +17,53 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RegistrationService {
 
-    private final EmailValidator emailValidator;
     private final UserService appUserService;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final TokenService confirmationTokenService;
     private final EmailSender emailSender;
 
-    public String register(AuthenticationRequestDto request){
-        boolean isValid = emailValidator.test(request.getEmail());
-        if (!isValid){
-            throw new IllegalStateException("The email is invalid");
+    public UserDto register(UserDto userDto){
+        // TODO / verify for redundant username
+        if (checkRedundantEmail(userDto.getEmail())){
+            throw new ApiRequestException("email already in use");
         }
         String token = appUserService.signup(
-                new User(request.getUserName(), request.getPassword(), request.getEmail(), UserRole.USER)
+                userMapper.userDtoToUser(userDto)
         );
+        userDto.setToken(token);
         String link = "http://localhost:8080/api/v1/registration/confirm?token=" + token;
-        emailSender.sendEmail(request.getEmail(),buildEmail(request.getUserName(),link));
-        return token;
+
+        emailSender.sendEmail(
+                userDto.getEmail(),
+                buildEmail(userDto.getUserName(), link)
+        );
+
+        return userDto;
     }
+
+    private boolean checkRedundantEmail(String email){
+        long count = userRepository.findAll().stream()
+                .map(User::getEmail)
+                .filter(e -> e.equals(email))
+                .count();
+        return count > 0;
+    }
+
     @Transactional
-    public String confirmToken(String token){
+    public void confirmToken(String token){
         Token confirmationToken =confirmationTokenService
                 .getToken(token)
-                .orElseThrow(()->new IllegalStateException("Token not found"));
+                .orElseThrow(()->new ApiRequestException("Token not found"));
         if (confirmationToken.getConfirmedAt() != null){
-            throw new IllegalStateException("email already confirmed");
+            throw new ApiRequestException("email already confirmed");
         }
         LocalDateTime expiredAt = confirmationToken.getExpiresAt();
         if (expiredAt.isBefore(LocalDateTime.now())){
-            throw new IllegalStateException("Token expired");
+            throw new ApiRequestException("Token expired");
         }
         confirmationTokenService.setConfirmedAt(token);
-        appUserService.enableAppUser(confirmationToken.getAppUser().getEmail());
-        return "confirmed";
+        appUserService.enableAppUser(confirmationToken.getUser().getEmail());
     }
 
     private String buildEmail(String name, String link) {

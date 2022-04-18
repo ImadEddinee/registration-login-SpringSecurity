@@ -22,8 +22,7 @@ public class TokenService {
             return confirmationTokenRepository.findByToken(token);
     }
     public void setConfirmedAt(String token){
-        Token confirmationToken = confirmationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+        Token confirmationToken = confirmationTokenRepository.findByToken(token).get();
         confirmationToken.setConfirmedAt(LocalDateTime.now());
     }
 }
